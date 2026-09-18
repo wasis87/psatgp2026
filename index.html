@@ -349,7 +349,7 @@
         }
 
         async function loadDataFromServer() {
-            if (GOOGLE_SHEET_URL === "MASUKKAN_LINK_URL_APPS_SCRIPT_DI_SINI" || GOOGLE_SHEET_URL === "") {
+            if (GOOGLE_SHEET_URL === "https://script.google.com/macros/s/AKfycbyJP8K1o-A9_y-0mEqbZ7gJWf8hqHVFbo6l1XDKLDSGHsA0kjBjgEv3O9WSdeH6Md2V/exec"") {
                 alert("Peringatan Sistem:\nLink URL Apps Script belum dimasukkan!\n\nData hanya akan tersimpan di HP/Browser ini saja (Mode Offline/Lokal) dan tidak akan sinkron ke perangkat lain.\n\nSilakan Edit file HTML ini dan masukkan URL Anda di bagian 'const GOOGLE_SHEET_URL'.");
                 absenceData = JSON.parse(localStorage.getItem('psat_absences_2026_update')) || [];
                 updateUI(absenceData);
