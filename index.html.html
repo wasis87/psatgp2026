@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekapitulasi PSAT 2026 - SMK Giripuro Sumpiuh</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2canvas for Export JPG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0077c0;
+            --accent: #ffd700;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-[#0077c0] text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-white rounded-full p-1 shadow flex items-center justify-center overflow-hidden border-2 border-[#ffd700]">
+                    <div class="w-full h-full bg-[#0077c0] flex items-center justify-center text-white font-bold text-xs rounded-full">SMK</div>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold tracking-wide">REKAPITULASI PSAT 2026</h1>
+                    <p class="text-xs text-yellow-200">SMK Giripuro Sumpiuh — Data Siswa Tidak Berangkat Ujian</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap justify-center">
+                <button onclick="openModalTambah()" class="bg-[#ffd700] text-gray-900 font-semibold px-4 py-2 rounded-lg shadow hover:bg-yellow-400 transition text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Tambah Data
+                </button>
+                <button onclick="window.print()" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-3 py-2 rounded-lg transition text-sm flex items-center gap-2 border border-white/30">
+                    <i class="fa-solid fa-print"></i> Cetak
+                </button>
+                <button onclick="exportJPG()" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-3 py-2 rounded-lg transition text-sm flex items-center gap-2 border border-white/30">
+                    <i class="fa-solid fa-image"></i> Export JPG
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6" id="captureArea">
+
+        <!-- Statistik Cards (Dashboard) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Total Tidak Hadir</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="statTotal">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-user-slash"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Berdasarkan Kelas</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="statKelas">0 Kelas</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-school"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-500 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Mata Pelajaran</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="statMapel">0 Mapel</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-book"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Sudah Susulan</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="statSudah">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Belum Susulan</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="statBelum">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm">
+                <h3 class="text-sm font-bold text-gray-700 mb-3"><i class="fa-solid fa-chart-bar text-[#0077c0] mr-2"></i> Rekapitulasi Berdasarkan Alasan</h3>
+                <div class="h-64 relative flex items-center justify-center">
+                    <canvas id="chartAlasan"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm">
+                <h3 class="text-sm font-bold text-gray-700 mb-3"><i class="fa-solid fa-chart-pie text-[#0077c0] mr-2"></i> Status Susulan Ujian</h3>
+                <div class="h-64 relative flex items-center justify-center">
+                    <canvas id="chartSusulan"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter & Search Toolbar -->
+        <section class="bg-white p-4 rounded-xl shadow-sm space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-3">
+                <div class="w-full md:w-1/3 relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="searchNama" oninput="filterData()" placeholder="Cari nama siswa..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                </div>
+                <div class="flex flex-wrap gap-2 w-full md:w-auto justify-end">
+                    <select id="filterKelas" onchange="filterData()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                        <option value="">Semua Kelas</option>
+                    </select>
+                    <select id="filterMapel" onchange="filterData()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                        <option value="">Semua Mapel</option>
+                    </select>
+                    <select id="filterAlasan" onchange="filterData()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                        <option value="">Semua Alasan</option>
+                    </select>
+                    <select id="filterStatus" onchange="filterData()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                        <option value="">Status Susulan</option>
+                        <option value="Sudah">Sudah</option>
+                        <option value="Belum">Belum</option>
+                    </select>
+                    <input type="date" id="filterTanggal" onchange="filterData()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                    <button onclick="resetFilter()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition" title="Reset Filter">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabel Rekapitulasi -->
+        <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-table-list text-[#0077c0]"></i> Daftar Rekap Siswa Tidak Hadir PSAT 2026
+                </h3>
+                <span class="text-xs bg-blue-100 text-[#0077c0] px-2.5 py-1 rounded-full font-semibold" id="tableCount">0 Data</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-100/70 text-gray-600 uppercase text-xs tracking-wider">
+                            <th class="py-3 px-4 font-semibold whitespace-nowrap">No</th>
+                            <th class="py-3 px-4 font-semibold whitespace-nowrap">Nama Siswa</th>
+                            <th class="py-3 px-4 font-semibold whitespace-nowrap">Kelas</th>
+                            <th class="py-3 px-4 font-semibold whitespace-nowrap">Mata Pelajaran</th>
+                            <th class="py-3 px-4 font-semibold whitespace-nowrap">Tanggal Ujian</th>
+                            <th class="py-3 px-4 font-semibold whitespace-nowrap">Alasan</th>
+                            <th class="py-3 px-4 font-semibold whitespace-nowrap">Status Susulan</th>
+                            <th class="py-3 px-4 font-semibold whitespace-nowrap">Tanggal Susulan</th>
+                            <th class="py-3 px-4 font-semibold whitespace-nowrap">Keterangan</th>
+                            <th class="py-3 px-4 font-semibold text-center whitespace-nowrap">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-gray-100">
+                        <!-- Rendered via JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="hidden py-12 text-center">
+                <div class="text-gray-300 text-4xl mb-2"><i class="fa-solid fa-folder-open"></i></div>
+                <p class="text-gray-500 text-sm">Tidak ada data rekapitulasi yang ditemukan.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12 py-4 text-center text-xs text-gray-500">
+        &copy; 2026 SMK Giripuro Sumpiuh — Aplikasi Rekapitulasi PSAT.
+    </footer>
+
+    <!-- Modal Tambah / Edit Data -->
+    <div id="modalData" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 id="modalTitle" class="font-bold text-lg text-gray-800">Tambah Data Tidak Hadir</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formDatang" onsubmit="saveData(event)" class="space-y-4 text-sm">
+                <input type="hidden" id="editIndex" value="">
+                
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">Pilih Siswa (Database Excel):</label>
+                    <select id="inputSiswa" required onchange="onSelectSiswa(this)" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                        <option value="">-- Pilih Siswa --</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Kelas:</label>
+                        <input type="text" id="inputKelas" readonly class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2.5 text-gray-600 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Mata Pelajaran:</label>
+                        <select id="inputMapel" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                            <option value="">-- Pilih Mapel --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Tanggal Ujian:</label>
+                        <input type="date" id="inputTanggal" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Alasan:</label>
+                        <select id="inputAlasan" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                            <option value="Sakit">Sakit</option>
+                            <option value="Izin">Izin</option>
+                            <option value="Tanpa Keterangan">Tanpa Keterangan</option>
+                            <option value="Dispen Lomba">Dispen Lomba</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Status Susulan:</label>
+                        <select id="inputStatus" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                            <option value="Belum">Belum</option>
+                            <option value="Sudah">Sudah</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Tanggal Susulan (Jika sudah):</label>
+                        <input type="date" id="inputTglSusulan" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">Keterangan:</label>
+                    <input type="text" id="inputKeterangan" placeholder="Contoh: Menunggu surat dokter, dll" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#0077c0] focus:outline-none">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-3 border-t">
+                    <button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition">Batal</button>
+                    <button type="submit" class="bg-[#0077c0] hover:bg-[#005f99] text-white px-5 py-2 rounded-lg font-semibold transition">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script Data & Logic -->
+    <script>
+        // Database Siswa Lengkap
+        const masterStudents = [{"NAMA": "AGUNG PRABOWO", "KELAS": "XII TITL"}, {"NAMA": "ALVIS DEWA SYAHPUTRA", "KELAS": "XII TITL"}, {"NAMA": "ANGGA LUFI CANDRA WINATA", "KELAS": "XII TITL"}, {"NAMA": "APRI SETYAWAN", "KELAS": "XII TITL"}, {"NAMA": "ARIF FAMBAYU", "KELAS": "XII TITL"}, {"NAMA": "CAHYONO JAYA", "KELAS": "XII TITL"}, {"NAMA": "CHENDY DWI FERNANDO", "KELAS": "XII TITL"}, {"NAMA": "DAFA SETIAWAN", "KELAS": "XII TITL"}, {"NAMA": "DEDE GURITNO", "KELAS": "XII TITL"}, {"NAMA": "DIAN AGUNG FEBRIANSAH", "KELAS": "XII TITL"}, {"NAMA": "DIKI AKBAR MAULANA", "KELAS": "XII TITL"}, {"NAMA": "DWI NUER RITA", "KELAS": "XII TITL"}, {"NAMA": "FAIZAM ADIN RAMADHAN", "KELAS": "XII TITL"}, {"NAMA": "FAJAR IFANDI", "KELAS": "XII TITL"}, {"NAMA": "IRZAL WAHIB AN NAWAWI", "KELAS": "XII TITL"}, {"NAMA": "KHASAN NGABDUL FATAH", "KELAS": "XII TITL"}, {"NAMA": "MA'RUF", "KELAS": "XII TITL"}, {"NAMA": "MOHAMMAD DIMAS EVANSYAH", "KELAS": "XII TITL"}, {"NAMA": "MUCHAMMAD HALAWI RAMADHAN", "KELAS": "XII TITL"}, {"NAMA": "PANDU DWI CAHYO", "KELAS": "XII TITL"}, {"NAMA": "PUTRA DWI JULIANTO", "KELAS": "XII TITL"}, {"NAMA": "RAYHAN PUTRA ANANTA", "KELAS": "XII TITL"}, {"NAMA": "RIAN SAPUTRA", "KELAS": "XII TITL"}, {"NAMA": "RIFA DIKI PRAYOGA", "KELAS": "XII TITL"}, {"NAMA": "WAHYU WIBOWO", "KELAS": "XII TITL"}, {"NAMA": "ALFIN BAYU SAPUTRA", "KELAS": "XII TKJ 1"}, {"NAMA": "AMELIA ANGGRAINI", "KELAS": "XII TKJ 1"}, {"NAMA": "AULIA", "KELAS": "XII TKJ 1"}, {"NAMA": "AYU PURNAMA SARI", "KELAS": "XII TKJ 1"}, {"NAMA": "AZKIA KHANIFA", "KELAS": "XII TKJ 1"}, {"NAMA": "AZZARA RIZKIA RAHMADHANI", "KELAS": "XII TKJ 1"}, {"NAMA": "DANDY LANANG SETIAWAN", "KELAS": "XII TKJ 1"}, {"NAMA": "DIAH NUR FADHILA", "KELAS": "XII TKJ 1"}, {"NAMA": "FIKA ANDRIANA SUSANTI", "KELAS": "XII TKJ 1"}, {"NAMA": "GICA ARTIKA PUTRI", "KELAS": "XII TKJ 1"}, {"NAMA": "IMRAN WAHYU", "KELAS": "XII TKJ 1"}, {"NAMA": "INDAH FAOZIYAH LESTARI", "KELAS": "XII TKJ 1"}, {"NAMA": "MAULIDA RISQI FEBRIANTI", "KELAS": "XII TKJ 1"}, {"NAMA": "MONTANA AGUSTINUS SAPUTRO", "KELAS": "XII TKJ 1"}, {"NAMA": "NABILA DWI MAHARANI", "KELAS": "XII TKJ 1"}, {"NAMA": "NEFYLIA SEPTIA RAHMA", "KELAS": "XII TKJ 1"}, {"NAMA": "NUR HASANAH", "KELAS": "XII TKJ 1"}, {"NAMA": "RIFAYA MEHERUNISSA NAYLA", "KELAS": "XII TKJ 1"}, {"NAMA": "RIZKI PRASTIO", "KELAS": "XII TKJ 1"}, {"NAMA": "RUDI FIRMANANDI", "KELAS": "XII TKJ 1"}, {"NAMA": "SEPTA ADITAMA", "KELAS": "XII TKJ 1"}, {"NAMA": "SITI KUMAIRA", "KELAS": "XII TKJ 1"}, {"NAMA": "SRI SUPARNI", "KELAS": "XII TKJ 1"}, {"NAMA": "SYIHABUDDIN", "KELAS": "XII TKJ 1"}, {"NAMA": "TAUFIK NUR ROHMAN", "KELAS": "XII TKJ 1"}, {"NAMA": "YUSNITA GABRIELA", "KELAS": "XII TKJ 1"}, {"NAMA": "ZAHRA NURIANA PUTRI", "KELAS": "XII TKJ 1"}, {"NAMA": "ZHARA OKTAVIANA", "KELAS": "XII TKJ 1"}, {"NAMA": "AFFDELA ROSSIANA FARAH", "KELAS": "XII TKJ 2"}, {"NAMA": "ALIFA NAFISHA PUTRI", "KELAS": "XII TKJ 2"}, {"NAMA": "ARIF PRIYANTO", "KELAS": "XII TKJ 2"}, {"NAMA": "AYU JULI YATI", "KELAS": "XII TKJ 2"}, {"NAMA": "BRILLIANT RASYA FIRMANSAH", "KELAS": "XII TKJ 2"}, {"NAMA": "CINDI AUDELIA KASIH", "KELAS": "XII TKJ 2"}, {"NAMA": "DIAH RAHMA AMALIA", "KELAS": "XII TKJ 2"}, {"NAMA": "DIKI AHMAD DARMAWAN", "KELAS": "XII TKJ 2"}, {"NAMA": "FAHRIZAL", "KELAS": "XII TKJ 2"}, {"NAMA": "FEBRIANI VALENTINA", "KELAS": "XII TKJ 2"}, {"NAMA": "FIRMAN RIYADI", "KELAS": "XII TKJ 2"}, {"NAMA": "FRISKA FIANTI", "KELAS": "XII TKJ 2"}, {"NAMA": "HALWA AZ ZAHRAA TAURISYA", "KELAS": "XII TKJ 2"}, {"NAMA": "HASNAA AZ ZAKIAH TAURISYA", "KELAS": "XII TKJ 2"}, {"NAMA": "IMSA ZAENURROHMAN", "KELAS": "XII TKJ 2"}, {"NAMA": "KEYZA PUTRI FEBRIANTI", "KELAS": "XII TKJ 2"}, {"NAMA": "MEI PUJI ASTUTI", "KELAS": "XII TKJ 2"}, {"NAMA": "MIESKA ANGGRAENI", "KELAS": "XII TKJ 2"}, {"NAMA": "RIAS APRI HASTARI", "KELAS": "XII TKJ 2"}, {"NAMA": "RIFQI ALFIYANTO", "KELAS": "XII TKJ 2"}, {"NAMA": "SATRIYO AGUNG WIBOWO", "KELAS": "XII TKJ 2"}, {"NAMA": "SHASHI AFRILIANA", "KELAS": "XII TKJ 2"}, {"NAMA": "SHIFA ATIKA SYAHIRA", "KELAS": "XII TKJ 2"}, {"NAMA": "SISRI LESTARI", "KELAS": "XII TKJ 2"}, {"NAMA": "SUCI SULISTIAWATI", "KELAS": "XII TKJ 2"}, {"NAMA": "WASIMAN", "KELAS": "XII TKJ 2"}, {"NAMA": "ALDO GUSNUR JULIANSYAH", "KELAS": "XII TKR 1"}, {"NAMA": "ANDI ARDIANSYAH", "KELAS": "XII TKR 1"}, {"NAMA": "ARDINDA TRIA WARDANA", "KELAS": "XII TKR 1"}, {"NAMA": "ARIFKI DIMAS PRATAMA", "KELAS": "XII TKR 1"}, {"NAMA": "AZAHRA PUTU ANDRIYAN", "KELAS": "XII TKR 1"}, {"NAMA": "AZMI AZKA AL FIRDAUS", "KELAS": "XII TKR 1"}, {"NAMA": "CANDRA SETYAWAN", "KELAS": "XII TKR 1"}, {"NAMA": "DESTA TIO ROSTARIANO", "KELAS": "XII TKR 1"}, {"NAMA": "DWI SETIAWAN", "KELAS": "XII TKR 1"}, {"NAMA": "DZAKY ANANDA SAPUTRA", "KELAS": "XII TKR 1"}, {"NAMA": "ELITA AYU DWITAMI", "KELAS": "XII TKR 1"}, {"NAMA": "FADLI WAHYU IRAWAN", "KELAS": "XII TKR 1"}, {"NAMA": "FAIZ NUR FAJRI", "KELAS": "XII TKR 1"}, {"NAMA": "FAIZ PUTRA NUR AZIZ", "KELAS": "XII TKR 1"}, {"NAMA": "FERI PRIYONO", "KELAS": "XII TKR 1"}, {"NAMA": "GALANG EKA SAPUTRA", "KELAS": "XII TKR 1"}, {"NAMA": "GIOK RENDA WIBOWO", "KELAS": "XII TKR 1"}, {"NAMA": "IRFAN TRIO SYAPUTRA", "KELAS": "XII TKR 1"}, {"NAMA": "LANGGENG WISNU WARDHANA", "KELAS": "XII TKR 1"}, {"NAMA": "MARVIN ARDINATA", "KELAS": "XII TKR 1"}, {"NAMA": "PRISMA GIEL ANUH", "KELAS": "XII TKR 1"}, {"NAMA": "PUTRA YOGI FEBRIYANTO", "KELAS": "XII TKR 1"}, {"NAMA": "RAYVAN ARKA GHIFARI", "KELAS": "XII TKR 1"}, {"NAMA": "RICKY JULIAN ANANDA", "KELAS": "XII TKR 1"}, {"NAMA": "SHOFYAN IZHAN", "KELAS": "XII TKR 1"}, {"NAMA": "WAHID RAHMAT ARYANTO", "KELAS": "XII TKR 1"}, {"NAMA": "YAFI IHROM AL MUKAFI", "KELAS": "XII TKR 1"}, {"NAMA": "ZIDAN RIZKY ALIANSYAH", "KELAS": "XII TKR 1"}, {"NAMA": "'AINUN KHAIRI TAJUDIN", "KELAS": "XII TKR 2"}, {"NAMA": "ADIKA RACHMAN SYAH", "KELAS": "XII TKR 2"}, {"NAMA": "AFDAL AFANDI", "KELAS": "XII TKR 2"}, {"NAMA": "AKHMAD JULIYANTO", "KELAS": "XII TKR 2"}, {"NAMA": "ANUGRAH SATRIA MUKTI", "KELAS": "XII TKR 2"}, {"NAMA": "ATLANTIKIS JULYKA VALLENT", "KELAS": "XII TKR 2"}, {"NAMA": "BAGAS PRASTYO", "KELAS": "XII TKR 2"}, {"NAMA": "DIAZ FAJAR HIDAYAT", "KELAS": "XII TKR 2"}, {"NAMA": "DIKI FIRMANSAH", "KELAS": "XII TKR 2"}, {"NAMA": "DIMAS DWINUGRAHA", "KELAS": "XII TKR 2"}, {"NAMA": "FABIYAN SULTONY RAMADHAN", "KELAS": "XII TKR 2"}, {"NAMA": "ILHAM MIFTAHUROHMAN", "KELAS": "XII TKR 2"}, {"NAMA": "IRWANZAH", "KELAS": "XII TKR 2"}, {"NAMA": "IVAN NUGROHO", "KELAS": "XII TKR 2"}, {"NAMA": "MUHAMAD ADI SAPUTRA", "KELAS": "XII TKR 2"}, {"NAMA": "NAFIUL ULUM", "KELAS": "XII TKR 2"}, {"NAMA": "NURHIDAYAT", "KELAS": "XII TKR 2"}, {"NAMA": "NURIZKI", "KELAS": "XII TKR 2"}, {"NAMA": "RADIT YULIAN SAPUTRA", "KELAS": "XII TKR 2"}, {"NAMA": "REZHA NUR PRATAMA", "KELAS": "XII TKR 2"}, {"NAMA": "RYAN HARIYANTO", "KELAS": "XII TKR 2"}, {"NAMA": "SULTHANUL IBNU ROZZAK", "KELAS": "XII TKR 2"}, {"NAMA": "SYNTIA SARI", "KELAS": "XII TKR 2"}, {"NAMA": "WAHYU NUR WAHIB", "KELAS": "XII TKR 2"}, {"NAMA": "YOGI DESTA PUJI WIJAYA", "KELAS": "XII TKR 2"}, {"NAMA": "AHMAD NUR CHIMAMUS SHOLIHIN", "KELAS": "XII TKR 3"}, {"NAMA": "AKHMAD FAIQ HARTANTO", "KELAS": "XII TKR 3"}, {"NAMA": "AMAR ABDURRAHMAN", "KELAS": "XII TKR 3"}, {"NAMA": "ANDIKA FIQIH ISMAIL", "KELAS": "XII TKR 3"}, {"NAMA": "ARYA AGIL WICAKSANA", "KELAS": "XII TKR 3"}, {"NAMA": "AVID ALFARDANI", "KELAS": "XII TKR 3"}, {"NAMA": "BAYU RAFLI SETIYAWAN", "KELAS": "XII TKR 3"}, {"NAMA": "CHOERUL MUTAKIN", "KELAS": "XII TKR 3"}, {"NAMA": "DANANG NUR AFIF", "KELAS": "XII TKR 3"}, {"NAMA": "DEVID ADRIAN", "KELAS": "XII TKR 3"}, {"NAMA": "DIKI ADI DHARMAWAN", "KELAS": "XII TKR 3"}, {"NAMA": "DIMAS ARDIWIGUNA", "KELAS": "XII TKR 3"}, {"NAMA": "DIMAS SAPUTRA", "KELAS": "XII TKR 3"}, {"NAMA": "FERDI ARDIYANSAH", "KELAS": "XII TKR 3"}, {"NAMA": "FERI IRFANSAH", "KELAS": "XII TKR 3"}, {"NAMA": "GILANG TANGGUH STYOPRATOMO", "KELAS": "XII TKR 3"}, {"NAMA": "IRZA GALA MUZAKI", "KELAS": "XII TKR 3"}, {"NAMA": "MOHAMAD DICKY NUR RIFAI", "KELAS": "XII TKR 3"}, {"NAMA": "MYRDAN SAIID SAPUTRA", "KELAS": "XII TKR 3"}, {"NAMA": "NOVYAN CHILMI JAMALUDIN", "KELAS": "XII TKR 3"}, {"NAMA": "NUR ROFIK", "KELAS": "XII TKR 3"}, {"NAMA": "NURUL RIYANTO", "KELAS": "XII TKR 3"}, {"NAMA": "REZKY PRATAMA DECHA", "KELAS": "XII TKR 3"}, {"NAMA": "RUDI PERNAMA PUTRA", "KELAS": "XII TKR 3"}, {"NAMA": "SOLEMAN", "KELAS": "XII TKR 3"}, {"NAMA": "SUBHAN YASHILA ROKHIM", "KELAS": "XII TKR 3"}, {"NAMA": "SYAM FIRDAUS BAHAUDIN", "KELAS": "XII TKR 3"}, {"NAMA": "WAHYU JULIANTO", "KELAS": "XII TKR 3"}, {"NAMA": "YOGA PRATRAMA", "KELAS": "XII TKR 3"}, {"NAMA": "ADI PRASETYO", "KELAS": "XII TKR 4"}, {"NAMA": "ADI TEGUH SETIAWAN", "KELAS": "XII TKR 4"}, {"NAMA": "AGUNG ARDIANSYAH", "KELAS": "XII TKR 4"}, {"NAMA": "AHMAD ADVAN FIRDAUS", "KELAS": "XII TKR 4"}, {"NAMA": "ALFIANSYAH", "KELAS": "XII TKR 4"}, {"NAMA": "ALI PAMBAYUN", "KELAS": "XII TKR 4"}, {"NAMA": "ANGGI WISNU FIRMANDANI", "KELAS": "XII TKR 4"}, {"NAMA": "BREGAS AL PUTRA", "KELAS": "XII TKR 4"}, {"NAMA": "CARLY RASHA PRADIKTA", "KELAS": "XII TKR 4"}, {"NAMA": "CHRISTIAN ARDHI NUGROHO", "KELAS": "XII TKR 4"}, {"NAMA": "DIKA DWI NUGROHO", "KELAS": "XII TKR 4"}, {"NAMA": "DIMAS ANDI SAPUTRA", "KELAS": "XII TKR 4"}, {"NAMA": "ERSEN KHARISNA HUTAMA", "KELAS": "XII TKR 4"}, {"NAMA": "FAJAR IBRAHIM", "KELAS": "XII TKR 4"}, {"NAMA": "FANJI SUGIYARTO", "KELAS": "XII TKR 4"}, {"NAMA": "FERI IRFANSAH", "KELAS": "XII TKR 4"}, {"NAMA": "MIFTAHUS SURURI", "KELAS": "XII TKR 4"}, {"NAMA": "MUMTAZHAM IKHARAM NUR EFENDY", "KELAS": "XII TKR 4"}, {"NAMA": "RIBI ANGGARA PRASETYA", "KELAS": "XII TKR 4"}, {"NAMA": "RIFQIAWAN SAPUTRA", "KELAS": "XII TKR 4"}, {"NAMA": "RIZKY ADHITIA", "KELAS": "XII TKR 4"}, {"NAMA": "SAMUDRA ARTA WINATA", "KELAS": "XII TKR 4"}, {"NAMA": "SANDI PRASETYO", "KELAS": "XII TKR 4"}, {"NAMA": "SEPTIAN ADHI PRIYANTO", "KELAS": "XII TKR 4"}, {"NAMA": "SYAHRIL HAKIKI", "KELAS": "XII TKR 4"}, {"NAMA": "WILY BUDI KUSWANTO", "KELAS": "XII TKR 4"}, {"NAMA": "ZIDAN MAULANA PUTRA PRATAMA", "KELAS": "XII TKR 4"}, {"NAMA": "AGUNG ALFIANDRA", "KELAS": "XII TKR 5"}, {"NAMA": "AHMAD NUR SALIM", "KELAS": "XII TKR 5"}, {"NAMA": "ANA RACHELIA NURHASANAH", "KELAS": "XII TKR 5"}, {"NAMA": "BILQIS LAUDYA THALITA PUTRI", "KELAS": "XII TKR 5"}, {"NAMA": "DIKA RAMADANI", "KELAS": "XII TKR 5"}, {"NAMA": "DWI AGUSTIN CAHAYA RAMADHANI", "KELAS": "XII TKR 5"}, {"NAMA": "DWI ANGGA RAMADHANI", "KELAS": "XII TKR 5"}, {"NAMA": "FACHRI ILHAM MAULANA R.", "KELAS": "XII TKR 5"}, {"NAMA": "FADHILLAL AZRIN", "KELAS": "XII TKR 5"}, {"NAMA": "FIAT KURNIAWAN", "KELAS": "XII TKR 5"}, {"NAMA": "GILANG RAMADHAN", "KELAS": "XII TKR 5"}, {"NAMA": "JOCELIN NAUFAL ADRITAMA", "KELAS": "XII TKR 5"}, {"NAMA": "JUNIAR NUR HIDAYAT", "KELAS": "XII TKR 5"}, {"NAMA": "MARSEL AFRIANSAH JULIANTO", "KELAS": "XII TKR 5"}, {"NAMA": "MEYLANI SULISTIOWATI", "KELAS": "XII TKR 5"}, {"NAMA": "RADITYA RAKHAA' NUGROHO", "KELAS": "XII TKR 5"}, {"NAMA": "RIYO CAHYA MUKTI", "KELAS": "XII TKR 5"}, {"NAMA": "RIZKI NUR IRFANSAH", "KELAS": "XII TKR 5"}, {"NAMA": "SHINDI TRI PRASETYANNGSIH", "KELAS": "XII TKR 5"}, {"NAMA": "WAHYU PURNOMO", "KELAS": "XII TKR 5"}, {"NAMA": "YAHYA HERDIYANSYAH", "KELAS": "XII TKR 5"}, {"NAMA": "YOGA ARIS PAMBUDI", "KELAS": "XII TKR 5"}, {"NAMA": "ACHMAD HUSNI MUBAROK", "KELAS": "XII TP 1"}, {"NAMA": "ADITYA ANDI SURANTO", "KELAS": "XII TP 1"}, {"NAMA": "ALFIAN NUR SYIFA", "KELAS": "XII TP 1"}, {"NAMA": "ANDHIKA BAYU KRESNA", "KELAS": "XII TP 1"}, {"NAMA": "ASBIQ ARYA DITIYA", "KELAS": "XII TP 1"}, {"NAMA": "DIKA DWI ARDIANSYAH", "KELAS": "XII TP 1"}, {"NAMA": "DIKI DWI PRASETYA", "KELAS": "XII TP 1"}, {"NAMA": "ERGI SUBARKAH", "KELAS": "XII TP 1"}, {"NAMA": "EVAN ANUGRAH UTAMA", "KELAS": "XII TP 1"}, {"NAMA": "FAHMI FAJAR RAMADHAN", "KELAS": "XII TP 1"}, {"NAMA": "FARKHAN DWI APRILLIAN", "KELAS": "XII TP 1"}, {"NAMA": "FEBRI TIANSYAH DIAN PRADITYA", "KELAS": "XII TP 1"}, {"NAMA": "FIKI FADILAH PRATAMA", "KELAS": "XII TP 1"}, {"NAMA": "HENDRI KUSPRIANTO", "KELAS": "XII TP 1"}, {"NAMA": "IMAM MUSTOLIH", "KELAS": "XII TP 1"}, {"NAMA": "ISYA MUHAMMAD JIBRIL IDHARI", "KELAS": "XII TP 1"}, {"NAMA": "JENI SETIANTO", "KELAS": "XII TP 1"}, {"NAMA": "KEVIN RIFKI HANTOPIK", "KELAS": "XII TP 1"}, {"NAMA": "LANJAR PRAMUKTI", "KELAS": "XII TP 1"}, {"NAMA": "MAALIFFA MAULANA MUFID", "KELAS": "XII TP 1"}, {"NAMA": "MAILINA ROKHMATAL AZKIA", "KELAS": "XII TP 1"}, {"NAMA": "MUHAMAD FAIZAL DARMAWAN", "KELAS": "XII TP 1"}, {"NAMA": "MUHAMAD NURUL HUDA", "KELAS": "XII TP 1"}, {"NAMA": "NOVAN SUBEKTI", "KELAS": "XII TP 1"}, {"NAMA": "NOVELIZA ALEA", "KELAS": "XII TP 1"}, {"NAMA": "NUR SAFITRI", "KELAS": "XII TP 1"}, {"NAMA": "RIFQI ALI MAHFUDI", "KELAS": "XII TP 1"}, {"NAMA": "RIZKI ADHITYA", "KELAS": "XII TP 1"}, {"NAMA": "RIZQI RAMADHANI", "KELAS": "XII TP 1"}, {"NAMA": "RO'SI MUSHAFA", "KELAS": "XII TP 1"}, {"NAMA": "TULUS PRASETYO", "KELAS": "XII TP 1"}, {"NAMA": "ABDHI NEGARA", "KELAS": "XII TP 2"}, {"NAMA": "ADE JULIAN MUHAMMAD RIZKY", "KELAS": "XII TP 2"}, {"NAMA": "ADI PRASETIYO", "KELAS": "XII TP 2"}, {"NAMA": "ALI MAINDI", "KELAS": "XII TP 2"}, {"NAMA": "ALTAF AZRI RAMADHAN", "KELAS": "XII TP 2"}, {"NAMA": "ALUNG BUDI PRASETYO", "KELAS": "XII TP 2"}, {"NAMA": "ARFAN SUJATMIKO", "KELAS": "XII TP 2"}, {"NAMA": "ARIF HERMAWAN", "KELAS": "XII TP 2"}, {"NAMA": "ARIS AMRI PAMUJI", "KELAS": "XII TP 2"}, {"NAMA": "BRILIANT ALVITO DINOVA", "KELAS": "XII TP 2"}, {"NAMA": "DANANG SATRIYO NDARU P.", "KELAS": "XII TP 2"}, {"NAMA": "DIMAS KURNIA SYAHPUTRA", "KELAS": "XII TP 2"}, {"NAMA": "DWI WAHYUDI", "KELAS": "XII TP 2"}, {"NAMA": "FERDIANSYAH JANUAR PRATAMA", "KELAS": "XII TP 2"}, {"NAMA": "FIRDAUS KHULDIANSYAH", "KELAS": "XII TP 2"}, {"NAMA": "HABI NUR FAIZ", "KELAS": "XII TP 2"}, {"NAMA": "MEILANDRI YUSUF PRATAMA", "KELAS": "XII TP 2"}, {"NAMA": "MUHAMAD CHALIL AL BAQSY", "KELAS": "XII TP 2"}, {"NAMA": "MUHAMMAD AL 'FARISI HARAHAP", "KELAS": "XII TP 2"}, {"NAMA": "MUHAMMAD DAFA ARDIAN RIZKI", "KELAS": "XII TP 2"}, {"NAMA": "MUHAMMAD HAIKAL FAHRI AL F.", "KELAS": "XII TP 2"}, {"NAMA": "MUKHAFID AZZAKI", "KELAS": "XII TP 2"}, {"NAMA": "NABIL AVRIAN", "KELAS": "XII TP 2"}, {"NAMA": "NOFAN MUSTOFA HIDAYAT", "KELAS": "XII TP 2"}, {"NAMA": "NOVAL RESTIAWAN", "KELAS": "XII TP 2"}, {"NAMA": "RAFLI WAHYU RAHMADHANI", "KELAS": "XII TP 2"}, {"NAMA": "RENDI NUR ROMADHONI", "KELAS": "XII TP 2"}, {"NAMA": "REZA ALDY FIRMANSYAH", "KELAS": "XII TP 2"}, {"NAMA": "REZA LATIFATUL JAMIL", "KELAS": "XII TP 2"}, {"NAMA": "RIZAL ABI LANCAR", "KELAS": "XII TP 2"}, {"NAMA": "TSABIT ARDIANSYAH PRATAMA P.", "KELAS": "XII TP 2"}, {"NAMA": "WAHYU MASRUR KHAFIDIN", "KELAS": "XII TP 2"}];
+        
+        // Daftar Mapel Baru
+        const daftarMapel = [
+            "Bahasa Indonesia",
+            "Bahasa Inggris",
+            "Bahasa Jawa",
+            "Matematika",
+            "Pendidikan Pancasila",
+            "Mapil Kesiapan Kerja",
+            "Kreativitas, Inovasi, dan Kewirausahaan",
+            "Pendidikan Agama & BP (Islam/Kristen/Buddha)",
+            "Konsentrasi Keahlian (TITL/TP/TKJ/TKR)"
+        ];
+
+        // Kosongkan data dummy, biarkan bersih
+        let absenceData = JSON.parse(localStorage.getItem('psat_absences_2026_update')) || [];
+
+        let chartAlasanInst = null;
+        let chartSusulanInst = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateDropdowns();
+            renderTable(absenceData);
+            updateDashboard(absenceData);
+            initCharts(absenceData);
+        });
+
+        function populateDropdowns() {
+            const selSiswa = document.getElementById('inputSiswa');
+            masterStudents.forEach(s => {
+                let opt = document.createElement('option');
+                opt.value = s.NAMA;
+                opt.text = `${s.NAMA} (${s.KELAS})`;
+                selSiswa.appendChild(opt);
+            });
+
+            const classes = [...new Set(masterStudents.map(s => s.KELAS))].sort();
+            const fKelas = document.getElementById('filterKelas');
+            classes.forEach(c => {
+                let opt = document.createElement('option');
+                opt.value = c;
+                opt.text = c;
+                fKelas.appendChild(opt);
+            });
+
+            const inputMapel = document.getElementById('inputMapel');
+            const fMapel = document.getElementById('filterMapel');
+            daftarMapel.forEach(m => {
+                // Dropdown tambah data
+                let opt1 = document.createElement('option');
+                opt1.value = m;
+                opt1.text = m;
+                inputMapel.appendChild(opt1);
+                
+                // Dropdown filter
+                let opt2 = document.createElement('option');
+                opt2.value = m;
+                opt2.text = m;
+                fMapel.appendChild(opt2);
+            });
+        }
+
+        function onSelectSiswa(select) {
+            const name = select.value;
+            const student = masterStudents.find(s => s.NAMA === name);
+            if (student) {
+                document.getElementById('inputKelas').value = student.KELAS;
+            } else {
+                document.getElementById('inputKelas').value = '';
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+            const tableCount = document.getElementById('tableCount');
+            
+            tbody.innerHTML = '';
+            tableCount.innerText = `${data.length} Data`;
+
+            if (data.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            // Tampilkan dari data terbaru
+            [...data].reverse().forEach((item, index) => {
+                const actualIndex = data.length - 1 - index;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50/80 transition";
+                
+                let badgeAlasan = '';
+                if(item.alasan === 'Sakit') badgeAlasan = 'bg-blue-100 text-blue-700';
+                else if(item.alasan === 'Izin') badgeAlasan = 'bg-amber-100 text-amber-700';
+                else if(item.alasan === 'Tanpa Keterangan') badgeAlasan = 'bg-red-100 text-red-700';
+                else badgeAlasan = 'bg-purple-100 text-purple-700';
+
+                let badgeStatus = item.status_susulan === 'Sudah' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-gray-500">${index + 1}</td>
+                    <td class="py-3 px-4 font-semibold text-gray-800">${item.nama}</td>
+                    <td class="py-3 px-4"><span class="bg-gray-100 px-2 py-1 rounded text-xs font-medium whitespace-nowrap">${item.kelas}</span></td>
+                    <td class="py-3 px-4 text-gray-600">${item.mapel}</td>
+                    <td class="py-3 px-4 text-gray-600">${item.tanggal || '-'}</td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${badgeAlasan}">${item.alasan}</span></td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${badgeStatus}">${item.status_susulan}</span></td>
+                    <td class="py-3 px-4 text-gray-600">${item.tanggal_susulan || '-'}</td>
+                    <td class="py-3 px-4 text-gray-500 text-xs">${item.keterangan || '-'}</td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="editData(${item.id})" class="text-blue-600 hover:text-blue-800 p-1 bg-blue-50 rounded" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteData(${item.id})" class="text-red-600 hover:text-red-800 p-1 bg-red-50 rounded" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateDashboard(data) {
+            document.getElementById('statTotal').innerText = data.length;
+            
+            const uniqueKelas = new Set(data.map(d => d.kelas)).size;
+            document.getElementById('statKelas').innerText = `${uniqueKelas} Kelas`;
+
+            const uniqueMapel = new Set(data.map(d => d.mapel)).size;
+            document.getElementById('statMapel').innerText = `${uniqueMapel} Mapel`;
+
+            const sudahSusulan = data.filter(d => d.status_susulan === 'Sudah').length;
+            const belumSusulan = data.filter(d => d.status_susulan === 'Belum').length;
+
+            document.getElementById('statSudah').innerText = sudahSusulan;
+            document.getElementById('statBelum').innerText = belumSusulan;
+        }
+
+        function initCharts(data) {
+            const alasanCounts = {
+                'Sakit': data.filter(d => d.alasan === 'Sakit').length,
+                'Izin': data.filter(d => d.alasan === 'Izin').length,
+                'Tanpa Keterangan': data.filter(d => d.alasan === 'Tanpa Keterangan').length,
+                'Dispen Lomba': data.filter(d => d.alasan === 'Dispen Lomba').length,
+            };
+
+            const sudah = data.filter(d => d.status_susulan === 'Sudah').length;
+            const belum = data.filter(d => d.status_susulan === 'Belum').length;
+
+            const ctxAlasan = document.getElementById('chartAlasan').getContext('2d');
+            if(chartAlasanInst) chartAlasanInst.destroy();
+            chartAlasanInst = new Chart(ctxAlasan, {
+                type: 'bar',
+                data: {
+                    labels: ['Sakit', 'Izin', 'Tanpa Keterangan', 'Dispen Lomba'],
+                    datasets: [{
+                        label: 'Jumlah Siswa',
+                        data: [alasanCounts['Sakit'], alasanCounts['Izin'], alasanCounts['Tanpa Keterangan'], alasanCounts['Dispen Lomba']],
+                        backgroundColor: ['#0077c0', '#f59e0b', '#ef4444', '#8b5cf6'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+
+            const ctxSusulan = document.getElementById('chartSusulan').getContext('2d');
+            if(chartSusulanInst) chartSusulanInst.destroy();
+            chartSusulanInst = new Chart(ctxSusulan, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sudah Susulan', 'Belum Susulan'],
+                    datasets: [{
+                        data: [sudah, belum],
+                        backgroundColor: ['#10b981', '#f97316']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { position: 'bottom' }
+                }
+            });
+        }
+
+        function filterData() {
+            const keyword = document.getElementById('searchNama').value.toLowerCase();
+            const fKelas = document.getElementById('filterKelas').value;
+            const fMapel = document.getElementById('filterMapel').value;
+            const fAlasan = document.getElementById('filterAlasan').value;
+            const fStatus = document.getElementById('filterStatus').value;
+            const fTanggal = document.getElementById('filterTanggal').value;
+
+            const filtered = absenceData.filter(item => {
+                const matchNama = item.nama.toLowerCase().includes(keyword);
+                const matchKelas = fKelas === "" || item.kelas === fKelas;
+                const matchMapel = fMapel === "" || item.mapel === fMapel;
+                const matchAlasan = fAlasan === "" || item.alasan === fAlasan;
+                const matchStatus = fStatus === "" || item.status_susulan === fStatus;
+                const matchTanggal = fTanggal === "" || item.tanggal === fTanggal;
+
+                return matchNama && matchKelas && matchMapel && matchAlasan && matchStatus && matchTanggal;
+            });
+
+            renderTable(filtered);
+            updateDashboard(filtered);
+            initCharts(filtered);
+        }
+
+        function resetFilter() {
+            document.getElementById('searchNama').value = '';
+            document.getElementById('filterKelas').value = '';
+            document.getElementById('filterMapel').value = '';
+            document.getElementById('filterAlasan').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterTanggal').value = '';
+            renderTable(absenceData);
+            updateDashboard(absenceData);
+            initCharts(absenceData);
+        }
+
+        function openModalTambah() {
+            document.getElementById('modalTitle').innerText = "Tambah Data Tidak Hadir";
+            document.getElementById('editIndex').value = "";
+            document.getElementById('formDatang').reset();
+            document.getElementById('modalData').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modalData').classList.add('hidden');
+        }
+
+        function saveData(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editIndex').value;
+            const nama = document.getElementById('inputSiswa').value;
+            const kelas = document.getElementById('inputKelas').value;
+            const mapel = document.getElementById('inputMapel').value;
+            const tanggal = document.getElementById('inputTanggal').value;
+            const alasan = document.getElementById('inputAlasan').value;
+            const status_susulan = document.getElementById('inputStatus').value;
+            const tanggal_susulan = document.getElementById('inputTglSusulan').value;
+            const keterangan = document.getElementById('inputKeterangan').value;
+
+            if (editId) {
+                const idx = absenceData.findIndex(d => d.id == editId);
+                if (idx !== -1) {
+                    absenceData[idx] = { ...absenceData[idx], nama, kelas, mapel, tanggal, alasan, status_susulan, tanggal_susulan, keterangan };
+                }
+            } else {
+                const newId = absenceData.length > 0 ? Math.max(...absenceData.map(d => d.id)) + 1 : 1;
+                absenceData.push({
+                    id: newId,
+                    nama, kelas, mapel, tanggal, alasan, status_susulan, tanggal_susulan, keterangan
+                });
+            }
+
+            localStorage.setItem('psat_absences_2026_update', JSON.stringify(absenceData));
+            closeModal();
+            resetFilter();
+        }
+
+        function editData(id) {
+            const item = absenceData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('modalTitle').innerText = "Edit Data Tidak Hadir";
+            document.getElementById('editIndex').value = item.id;
+            document.getElementById('inputSiswa').value = item.nama;
+            document.getElementById('inputKelas').value = item.kelas;
+            document.getElementById('inputMapel').value = item.mapel;
+            document.getElementById('inputTanggal').value = item.tanggal || '';
+            document.getElementById('inputAlasan').value = item.alasan;
+            document.getElementById('inputStatus').value = item.status_susulan;
+            document.getElementById('inputTglSusulan').value = item.tanggal_susulan || '';
+            document.getElementById('inputKeterangan').value = item.keterangan || '';
+
+            document.getElementById('modalData').classList.remove('hidden');
+        }
+
+        function deleteData(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus data rekapitulasi ini?")) {
+                absenceData = absenceData.filter(d => d.id !== id);
+                localStorage.setItem('psat_absences_2026_update', JSON.stringify(absenceData));
+                resetFilter();
+            }
+        }
+
+        function exportJPG() {
+            const element = document.getElementById('captureArea');
+            html2canvas(element, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Rekap_PSAT_2026_SMK_Giripuro.jpg';
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
