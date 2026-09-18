@@ -320,17 +320,79 @@
         ];
 
         // Kosongkan data dummy, biarkan bersih
-        let absenceData = JSON.parse(localStorage.getItem('psat_absences_2026_update')) || [];
+        // =========================================================================
+        // PENGATURAN DATABASE (WAJIB DIISI)
+        // =========================================================================
+       const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzy-W_ZzZDvfwuR_1Tb-Q8KtQznfYUtREjn_PpAAuSb7wPZuqPUaqnd3rRWpiehc/exec";// <-- GANTI TEKS DI DALAM TANDA KUTIP INI
+        
+        let absenceData = [];
+        
+        // Show Online/Offline status badge
+        const headerContainer = document.querySelector('header .max-w-7xl');
+        const syncBadge = document.createElement('div');
+        syncBadge.id = 'syncStatus';
+        syncBadge.innerHTML = '<span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-md ml-4"><i class="fa-solid fa-cloud-arrow-down"></i> Local Mode</span>';
+        headerContainer.children[0].appendChild(syncBadge);
 
         let chartAlasanInst = null;
         let chartSusulanInst = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             populateDropdowns();
-            renderTable(absenceData);
-            updateDashboard(absenceData);
-            initCharts(absenceData);
+            loadDataFromServer();
         });
+
+        function updateUI(data) {
+            renderTable(data);
+            updateDashboard(data);
+            initCharts(data);
+        }
+
+        async function loadDataFromServer() {
+            if (GOOGLE_SHEET_URL === "MASUKKAN_LINK_URL_APPS_SCRIPT_DI_SINI" || GOOGLE_SHEET_URL === "") {
+                alert("Peringatan Sistem:\nLink URL Apps Script belum dimasukkan!\n\nData hanya akan tersimpan di HP/Browser ini saja (Mode Offline/Lokal) dan tidak akan sinkron ke perangkat lain.\n\nSilakan Edit file HTML ini dan masukkan URL Anda di bagian 'const GOOGLE_SHEET_URL'.");
+                absenceData = JSON.parse(localStorage.getItem('psat_absences_2026_update')) || [];
+                updateUI(absenceData);
+                document.getElementById('syncStatus').innerHTML = '<span class="bg-red-500 text-white text-xs px-2 py-1 rounded-md ml-4 shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i> Belum Disetting</span>';
+                return;
+            }
+
+            document.getElementById('syncStatus').innerHTML = '<span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-md ml-4 shadow-sm"><i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...</span>';
+            
+            try {
+                const response = await fetch(GOOGLE_SHEET_URL);
+                absenceData = await response.json();
+                localStorage.setItem('psat_absences_2026_update', JSON.stringify(absenceData));
+            syncDataToServer(); // Backup lokal
+                updateUI(absenceData);
+                document.getElementById('syncStatus').innerHTML = '<span class="bg-emerald-500 text-white text-xs px-2 py-1 rounded-md ml-4 shadow-sm"><i class="fa-solid fa-cloud-check"></i> Tersambung Online</span>';
+            } catch (error) {
+                console.error("Gagal menarik data dari server", error);
+                absenceData = JSON.parse(localStorage.getItem('psat_absences_2026_update')) || [];
+                updateUI(absenceData);
+                document.getElementById('syncStatus').innerHTML = '<span class="bg-red-500 text-white text-xs px-2 py-1 rounded-md ml-4 shadow-sm"><i class="fa-solid fa-cloud-xmark"></i> Offline (Cek Koneksi)</span>';
+            }
+        }
+
+        async function syncDataToServer() {
+            if (GOOGLE_SHEET_URL === "MASUKKAN_LINK_URL_APPS_SCRIPT_DI_SINI" || GOOGLE_SHEET_URL === "") return;
+            
+            document.getElementById('syncStatus').innerHTML = '<span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-md ml-4 shadow-sm"><i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...</span>';
+            try {
+                const formData = new URLSearchParams();
+                formData.append('action', 'saveAll');
+                formData.append('data', JSON.stringify(absenceData));
+
+                await fetch(GOOGLE_SHEET_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                document.getElementById('syncStatus').innerHTML = '<span class="bg-emerald-500 text-white text-xs px-2 py-1 rounded-md ml-4 shadow-sm"><i class="fa-solid fa-cloud-check"></i> Tersambung Online</span>';
+            } catch (error) {
+                console.error("Gagal sinkron data", error);
+                document.getElementById('syncStatus').innerHTML = '<span class="bg-amber-500 text-white text-xs px-2 py-1 rounded-md ml-4 shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i> Gagal Tersimpan</span>';
+            }
+        }
 
         function populateDropdowns() {
             const classes = [...new Set(masterStudents.map(s => s.KELAS))].sort();
@@ -602,6 +664,7 @@
             }
 
             localStorage.setItem('psat_absences_2026_update', JSON.stringify(absenceData));
+            syncDataToServer();
             closeModal();
             resetFilter();
         }
@@ -634,6 +697,7 @@
             if (confirm("Apakah Anda yakin ingin menghapus data rekapitulasi ini?")) {
                 absenceData = absenceData.filter(d => d.id !== id);
                 localStorage.setItem('psat_absences_2026_update', JSON.stringify(absenceData));
+            syncDataToServer();
                 resetFilter();
             }
         }
